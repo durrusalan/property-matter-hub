@@ -1,0 +1,45 @@
+# Build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.DS_Store
+
+# .NET
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/Properties/launchSettings.json
+
+# Publish output
+publish/
+out/
+
+# demo-app (separate Next.js project with its own git repo)
+demo-app/
+
+# Node
+node_modules/
+.next/
+.env.local
+.env.*.local
+
+# Database files (not committed — lives on Z: drive)
+*.db
+*.db-shm
+*.db-wal
+
+# Secrets
+appsettings.Production.json
+**/google-credentials.json
+**/token.json
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
