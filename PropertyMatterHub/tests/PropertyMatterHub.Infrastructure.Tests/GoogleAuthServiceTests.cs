@@ -7,8 +7,8 @@ using Xunit;
 namespace PropertyMatterHub.Infrastructure.Tests;
 
 /// <summary>
-/// RED tests for GoogleAuthService.
-/// These verify the guard logic that doesn't require a real OAuth flow.
+/// Baseline tests for GoogleAuthService (non-credential-path logic).
+/// Credential-path tests live in GoogleAuthServiceCredentialTests.cs.
 /// </summary>
 public class GoogleAuthServiceTests : IDisposable
 {
@@ -20,59 +20,29 @@ public class GoogleAuthServiceTests : IDisposable
         Directory.CreateDirectory(_tempDir);
     }
 
-    private GoogleAuthService BuildSut(string credentialsPath, string tokenPath)
+    private GoogleAuthService BuildSut(params (string key, string value)[] entries)
     {
         var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Google:CredentialsPath"]  = credentialsPath,
-                ["Google:TokenStorePath"]   = tokenPath
-            })
+            .AddInMemoryCollection(entries.Select(e =>
+                new KeyValuePair<string, string?>(e.key, e.value)))
             .Build();
         return new GoogleAuthService(config, NullLogger<GoogleAuthService>.Instance);
     }
 
     [Fact]
-    public void IsCredentialsFilePresent_ReturnsFalse_WhenFileDoesNotExist()
-    {
-        var sut = BuildSut(
-            credentialsPath: Path.Combine(_tempDir, "credentials.json"),
-            tokenPath: _tempDir);
-
-        sut.IsCredentialsFilePresent.Should().BeFalse();
-    }
-
-    [Fact]
-    public void IsCredentialsFilePresent_ReturnsTrue_WhenFileExists()
-    {
-        var credPath = Path.Combine(_tempDir, "credentials.json");
-        File.WriteAllText(credPath, "{}");
-
-        var sut = BuildSut(credentialsPath: credPath, tokenPath: _tempDir);
-
-        sut.IsCredentialsFilePresent.Should().BeTrue();
-    }
-
-    [Fact]
     public void IsAuthorised_ReturnsFalse_BeforeAnyAuth()
     {
-        var sut = BuildSut(
-            credentialsPath: Path.Combine(_tempDir, "credentials.json"),
-            tokenPath: _tempDir);
-
-        sut.IsAuthorised.Should().BeFalse();
+        BuildSut().IsAuthorised.Should().BeFalse();
     }
 
     [Fact]
-    public async Task GetCredentialAsync_Throws_WhenCredentialsFileMissing()
+    public async Task GetCredentialAsync_Throws_WhenNoCredentialsConfigured()
     {
-        var sut = BuildSut(
-            credentialsPath: Path.Combine(_tempDir, "missing.json"),
-            tokenPath: _tempDir);
+        var sut = BuildSut();   // nothing in config, nothing set at runtime
 
         await sut.Invoking(s => s.GetCredentialAsync())
-            .Should().ThrowAsync<FileNotFoundException>()
-            .WithMessage("*credentials file not found*");
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Client ID*");
     }
 
     [Fact]

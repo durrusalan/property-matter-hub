@@ -4,7 +4,7 @@
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:vm="clr-namespace:PropertyMatterHub.App.ViewModels"
         xmlns:views="clr-namespace:PropertyMatterHub.App.Views"
-        Title="Property Matter Hub"
+        Title="Wilson Daly Solicitors"
         MinWidth="1100" MinHeight="700"
         Width="1300" Height="800"
         WindowStartupLocation="CenterScreen"
@@ -21,17 +21,12 @@
             BorderBrush="{ui:ThemeResource ControlElevationBorderBrush}" BorderThickness="0,0,1,0">
       <DockPanel>
 
-        <!-- Logo -->
-        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,20,16,24">
-          <Border Width="36" Height="36" CornerRadius="10"
-                  Background="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}">
-            <ui:SymbolIcon Symbol="Briefcase24" Foreground="White" FontSize="18" />
-          </Border>
-          <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
-            <TextBlock Text="Property Matter" FontWeight="SemiBold" FontSize="13" />
-            <TextBlock Text="Hub" FontSize="12" Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}" />
-          </StackPanel>
-        </StackPanel>
+        <!-- Logo: light container so logo has contrast on dark sidebar -->
+        <Border DockPanel.Dock="Top" Margin="16,20,16,24"
+                Background="#FAFAFA" CornerRadius="8" Padding="10,8">
+          <Image Source="pack://application:,,,/PropertyMatterHub.App;component/Assets/Logo.png"
+                 MaxWidth="180" MaxHeight="44" Stretch="Uniform" />
+        </Border>
 
         <!-- Search bar -->
         <Border DockPanel.Dock="Top" Margin="12,0,12,12">
@@ -66,7 +61,7 @@
     <Grid Grid.Column="1">
 
       <!-- Title bar -->
-      <ui:TitleBar DockPanel.Dock="Top" Title="Property Matter Hub"
+      <ui:TitleBar DockPanel.Dock="Top" Title="Wilson Daly Solicitors"
                    ShowMinimize="True" ShowMaximize="True" ShowClose="True" />
 
       <!-- Page switcher -->

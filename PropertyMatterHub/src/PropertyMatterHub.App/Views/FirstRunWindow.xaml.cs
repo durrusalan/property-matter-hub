@@ -11,13 +11,22 @@ public partial class FirstRunWindow : Window
     public FirstRunWindow(SettingsViewModel vm, FirstRunService firstRunService)
     {
         InitializeComponent();
-        DataContext         = vm;
-        _firstRunService    = firstRunService;
+        DataContext      = vm;
+        _firstRunService = firstRunService;
+    }
+
+    private async void ConnectGoogle_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsViewModel vm) return;
+
+        var dialog = new GoogleCredentialsWindow { Owner = this };
+        if (dialog.ShowDialog() != true) return;
+
+        await vm.SetAndConnectAsync(dialog.ClientId!, dialog.ClientSecret!);
     }
 
     private async void GetStarted_Click(object sender, RoutedEventArgs e)
     {
-        // Persist whatever the user typed — SettingsViewModel properties are already bound.
         if (DataContext is SettingsViewModel vm)
         {
             await _firstRunService.SaveUserSettingsAsync(new UserSettings(

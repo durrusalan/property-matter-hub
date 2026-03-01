@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Configuration;
+using PropertyMatterHub.App.Services;
 using PropertyMatterHub.Infrastructure.FileSystem;
 using PropertyMatterHub.Infrastructure.Google;
 
@@ -12,6 +13,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly ZDriveScanner       _scanner;
     private readonly ZDriveIndexingService _indexer;
     private readonly IGoogleAuthService  _googleAuth;
+    private readonly FirstRunService?    _firstRunService;
 
     [ObservableProperty] private string _zDriveRoot         = @"Z:\";
     [ObservableProperty] private string _excelPath          = @"Z:\ClientDatabase.xlsx";
@@ -29,12 +31,14 @@ public partial class SettingsViewModel : ObservableObject
         IConfiguration config,
         ZDriveScanner scanner,
         ZDriveIndexingService indexer,
-        IGoogleAuthService googleAuth)
+        IGoogleAuthService googleAuth,
+        FirstRunService? firstRunService = null)
     {
-        _config     = config;
-        _scanner    = scanner;
-        _indexer    = indexer;
-        _googleAuth = googleAuth;
+        _config          = config;
+        _scanner         = scanner;
+        _indexer         = indexer;
+        _googleAuth      = googleAuth;
+        _firstRunService = firstRunService;
         LoadFromConfig();
         RefreshGoogleStatus();
     }
@@ -98,6 +102,31 @@ public partial class SettingsViewModel : ObservableObject
             GoogleAuthStatus = $"Connection failed: {ex.Message}";
         }
         finally { IsConnectingGoogle = false; }
+    }
+
+    /// <summary>
+    /// Called by the view's code-behind after the user provides credentials in the dialog.
+    /// Sets them on the auth service, persists them to the user config, then starts
+    /// the browser OAuth flow.
+    /// </summary>
+    public async Task SetAndConnectAsync(string clientId, string clientSecret)
+    {
+        _googleAuth.SetClientSecrets(clientId, clientSecret);
+
+        // Persist so the credentials survive restarts.
+        if (_firstRunService is not null)
+        {
+            await _firstRunService.SaveUserSettingsAsync(new UserSettings(
+                ZDriveRoot:        ZDriveRoot,
+                CaseFolderPattern: CaseFolderPattern,
+                CaseFolderDepth:   CaseFolderDepth,
+                ExcelPath:         ExcelPath,
+                DatabasePath:      _config["ZDrive:DatabasePath"] ?? @"Z:\PropertyMatterHub\hub.db"),
+                googleClientId:    clientId,
+                googleClientSecret: clientSecret);
+        }
+
+        await ConnectGoogleAsync();
     }
 
     [RelayCommand]

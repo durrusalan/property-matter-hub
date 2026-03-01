@@ -17,7 +17,10 @@ public class FirstRunService
     public bool IsFirstRun => !File.Exists(_configPath);
 
     public async Task SaveUserSettingsAsync(
-        UserSettings settings, CancellationToken ct = default)
+        UserSettings settings,
+        string? googleClientId     = null,
+        string? googleClientSecret = null,
+        CancellationToken ct = default)
     {
         var dir = Path.GetDirectoryName(_configPath);
         if (!string.IsNullOrEmpty(dir))
@@ -32,6 +35,11 @@ public class FirstRunService
                 CaseFolderDepth   = settings.CaseFolderDepth,
                 ExcelPath         = settings.ExcelPath,
                 DatabasePath      = settings.DatabasePath
+            },
+            Google = string.IsNullOrWhiteSpace(googleClientId) ? null : new
+            {
+                ClientId     = googleClientId,
+                ClientSecret = googleClientSecret
             }
         };
 

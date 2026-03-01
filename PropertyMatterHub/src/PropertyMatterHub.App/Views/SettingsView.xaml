@@ -85,7 +85,7 @@
 
           <StackPanel Orientation="Horizontal">
             <ui:Button Content="Connect Google Account" Icon="{ui:SymbolIcon Symbol=PlugConnected24}"
-                       Command="{Binding ConnectGoogleCommand}" Appearance="Secondary"
+                       Click="ConnectGoogle_Click" Appearance="Secondary"
                        Visibility="{Binding IsGoogleAuthorized, Converter={StaticResource InverseBoolToVisibility}}"
                        Margin="0,0,8,0" />
             <ui:Button Content="Disconnect" Icon="{ui:SymbolIcon Symbol=PlugDisconnected24}"
