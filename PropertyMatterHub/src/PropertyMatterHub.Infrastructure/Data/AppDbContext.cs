@@ -81,6 +81,7 @@ public class AppDbContext : DbContext
         // CalendarEvent
         modelBuilder.Entity<CalendarEvent>(e =>
         {
+            e.ToTable("CalendarEvents");
             e.HasKey(ce => ce.Id);
             e.HasIndex(ce => ce.GoogleEventId);
             e.Property(ce => ce.SyncStatus).HasConversion<string>();

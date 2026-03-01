@@ -59,19 +59,20 @@ public partial class App : Application
                 services.AddSingleton<IGmailRawClient, LiveGmailRawClient>();
                 services.AddSingleton<IGmailApiAdapter, LiveGmailApiAdapter>();
 
-                // Use live Gmail when credentials.json exists on Z:; otherwise stub.
+                // Use live Google services when credentials.json exists on Z:; otherwise stubs.
                 var credPath = ctx.Configuration["Google:CredentialsPath"]
                     ?? @"Z:\PropertyMatterHub\credentials.json";
                 if (File.Exists(credPath))
                 {
                     services.AddSingleton<IEmailService, GmailEmailService>();
+                    services.AddSingleton<IGoogleCalendarClient, LiveGoogleCalendarClient>();
+                    services.AddSingleton<ICalendarService, GoogleCalendarService>();
                 }
                 else
                 {
                     services.AddSingleton<IEmailService, NullEmailService>();
+                    services.AddSingleton<ICalendarService, NullCalendarService>();
                 }
-
-                services.AddSingleton<ICalendarService, NullCalendarService>();
 
                 // Infrastructure
                 services.AddSingleton(sp =>

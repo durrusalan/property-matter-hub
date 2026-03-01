@@ -64,6 +64,27 @@ public partial class CalendarViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task DeleteEventAsync(CalendarEvent? ev)
+    {
+        var target = ev ?? SelectedEvent;
+        if (target is null) return;
+        await _calendar.DeleteEventAsync(target.Id);
+        if (SelectedEvent?.Id == target.Id) SelectedEvent = null;
+        await LoadAsync();
+    }
+
+    /// <summary>Opens the edit form for an existing event clicked in the agenda.</summary>
+    [RelayCommand]
+    private void EditEvent(CalendarEvent? ev)
+    {
+        if (ev is not null) SelectedEvent = ev;
+        IsEditing = true;
+    }
+
+    [RelayCommand]
+    private void CancelEdit() => IsEditing = false;
+
+    [RelayCommand]
     private void SetViewMode(CalendarViewMode mode) { ViewMode = mode; _ = LoadAsync(); }
 
     [RelayCommand]
