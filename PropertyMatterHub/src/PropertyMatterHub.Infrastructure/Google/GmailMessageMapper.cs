@@ -4,10 +4,14 @@ using System.Text;
 
 namespace PropertyMatterHub.Infrastructure.Google;
 
-/// <summary>Pure static mapping — Gmail API Message → EmailRecord.</summary>
+/// <summary>
+/// Pure static helpers for Gmail wire-format ↔ domain model conversions.
+/// Covers inbound mapping (Message → EmailRecord) and outbound encoding.
+/// </summary>
 public static class GmailMessageMapper
 {
-    private const int SnippetMaxLength = 500;
+    public const int SnippetMaxLength = 500;
+    public const string OutboundIdPrefix = "outbound-";
 
     public static EmailRecord ToEmailRecord(Message msg)
     {
@@ -57,6 +61,24 @@ public static class GmailMessageMapper
         return string.Empty;
     }
 
+    /// <summary>
+    /// Encodes a plain-text email as a base64url RFC-2822 message
+    /// suitable for the Gmail API send/reply endpoint.
+    /// </summary>
+    public static string BuildBase64UrlRaw(string to, string subject, string body,
+        string? inReplyTo = null)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"To: {to}");
+        sb.AppendLine($"Subject: {subject}");
+        if (inReplyTo is not null) sb.AppendLine($"In-Reply-To: {inReplyTo}");
+        sb.AppendLine("Content-Type: text/plain; charset=utf-8");
+        sb.AppendLine();
+        sb.Append(body);
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(sb.ToString()))
+            .Replace('+', '-').Replace('/', '_').TrimEnd('=');
+    }
+
     /// <summary>Decodes a base64url string (Gmail's encoding) to UTF-8 text.</summary>
     private static string DecodeBase64Url(string base64Url)
     {
@@ -66,6 +88,6 @@ public static class GmailMessageMapper
         return Encoding.UTF8.GetString(Convert.FromBase64String(base64));
     }
 
-    private static string Truncate(string value, int maxLength) =>
+    public static string Truncate(string value, int maxLength) =>
         value.Length > maxLength ? value[..maxLength] : value;
 }
