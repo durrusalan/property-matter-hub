@@ -1,4 +1,10 @@
-# Property Matter Hub Demo (Mock UI)
+# Property Matter Hub
+
+> **Looking for the desktop app?** See [PropertyMatterHub/README.md](PropertyMatterHub/README.md) for full setup instructions.
+
+---
+
+## Mock UI Demo (React)
 
 A React demo for an **Irish property law** practice. It shows a mock matter-management UI with two view modes and a unified search that includes document content (simulating Microsoft Graph Search / SharePoint).
 

@@ -21,9 +21,9 @@
             BorderBrush="{ui:ThemeResource ControlElevationBorderBrush}" BorderThickness="0,0,1,0">
       <DockPanel>
 
-        <!-- Logo: light container so logo has contrast on dark sidebar -->
+        <!-- Logo: light container (Wilson Daly off‑white #F8F6F8) -->
         <Border DockPanel.Dock="Top" Margin="16,20,16,24"
-                Background="#FAFAFA" CornerRadius="8" Padding="10,8">
+                Background="#F8F6F8" CornerRadius="8" Padding="10,8">
           <Image Source="pack://application:,,,/PropertyMatterHub.App;component/Assets/Logo.png"
                  MaxWidth="180" MaxHeight="44" Stretch="Uniform" />
         </Border>

@@ -14,7 +14,9 @@ using PropertyMatterHub.Infrastructure.FileSystem;
 using PropertyMatterHub.Infrastructure.Google;
 using System.IO;
 using System.Windows;
+using System.Windows.Media;
 using Microsoft.Extensions.Logging;
+using Wpf.Ui.Appearance;
 
 namespace PropertyMatterHub.App;
 
@@ -119,8 +121,11 @@ public partial class App : Application
             "Z: drive index: {Matched}/{Total} folders matched, {C} clients + {M} matters added.",
             summary.FoldersMatched, summary.FoldersFound, summary.ClientsCreated, summary.MattersCreated);
 
-        // Register WPF-UI accent colour resources (needed by Badge, ProgressRing, etc.)
-        Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
+        // Theme: light (white) with Wilson Daly logo purple as accent (#6E3D6E from logo)
+        ApplicationThemeManager.Apply(ApplicationTheme.Light);
+        ApplicationAccentColorManager.Apply(
+            Color.FromRgb(0x6E, 0x3D, 0x6E),
+            ApplicationTheme.Light);
 
         // Show first-run wizard if this is the user's first launch.
         var firstRunSvc = _host.Services.GetRequiredService<FirstRunService>();
