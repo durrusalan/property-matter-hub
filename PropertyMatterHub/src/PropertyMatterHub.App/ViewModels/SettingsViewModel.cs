@@ -2,48 +2,51 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Configuration;
 using PropertyMatterHub.Infrastructure.FileSystem;
+using PropertyMatterHub.Infrastructure.Google;
 
 namespace PropertyMatterHub.App.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private readonly IConfiguration _config;
-    private readonly ZDriveScanner _scanner;
+    private readonly IConfiguration      _config;
+    private readonly ZDriveScanner       _scanner;
     private readonly ZDriveIndexingService _indexer;
+    private readonly IGoogleAuthService  _googleAuth;
 
-    [ObservableProperty] private string _zDriveRoot = @"Z:\";
-    [ObservableProperty] private string _excelPath = @"Z:\ClientDatabase.xlsx";
-    [ObservableProperty] private string _caseFolderPattern = @"^(?<ClientName>.+?)\s*-\s*(?<CaseNumber>.+)$";
-    [ObservableProperty] private int _caseFolderDepth = 1;
-    [ObservableProperty] private string _patternTestResult = string.Empty;
-    [ObservableProperty] private string _indexingResult = string.Empty;
-    [ObservableProperty] private bool _isIndexing;
-    [ObservableProperty] private bool _isGoogleAuthorized;
-    [ObservableProperty] private string _googleAuthStatus = "Not connected";
-    [ObservableProperty] private bool _isSaving;
+    [ObservableProperty] private string _zDriveRoot         = @"Z:\";
+    [ObservableProperty] private string _excelPath          = @"Z:\ClientDatabase.xlsx";
+    [ObservableProperty] private string _caseFolderPattern  = @"^(?<ClientName>.+?)\s*-\s*(?<CaseNumber>.+)$";
+    [ObservableProperty] private int    _caseFolderDepth    = 1;
+    [ObservableProperty] private string _patternTestResult  = string.Empty;
+    [ObservableProperty] private string _indexingResult     = string.Empty;
+    [ObservableProperty] private bool   _isIndexing;
+    [ObservableProperty] private bool   _isGoogleAuthorized;
+    [ObservableProperty] private string _googleAuthStatus   = "Not connected";
+    [ObservableProperty] private bool   _isSaving;
+    [ObservableProperty] private bool   _isConnectingGoogle;
 
-    public SettingsViewModel(IConfiguration config, ZDriveScanner scanner, ZDriveIndexingService indexer)
+    public SettingsViewModel(
+        IConfiguration config,
+        ZDriveScanner scanner,
+        ZDriveIndexingService indexer,
+        IGoogleAuthService googleAuth)
     {
-        _config  = config;
-        _scanner = scanner;
-        _indexer = indexer;
+        _config     = config;
+        _scanner    = scanner;
+        _indexer    = indexer;
+        _googleAuth = googleAuth;
         LoadFromConfig();
+        RefreshGoogleStatus();
     }
 
-    private void LoadFromConfig()
-    {
-        ZDriveRoot         = _config["ZDrive:RootPath"]          ?? @"Z:\";
-        ExcelPath          = _config["ZDrive:ExcelPath"]         ?? @"Z:\ClientDatabase.xlsx";
-        CaseFolderPattern  = _config["ZDrive:CaseFolderPattern"] ?? CaseFolderPattern;
-        CaseFolderDepth    = int.TryParse(_config["ZDrive:CaseFolderDepth"], out var d) ? d : 1;
-    }
+    // ── Z: drive ─────────────────────────────────────────────────────────────
 
     [RelayCommand]
     private void TestPattern()
     {
         try
         {
-            var cfg = new FolderStructureConfig
+            var cfg     = new FolderStructureConfig
             {
                 RootPath          = ZDriveRoot,
                 CaseFolderPattern = CaseFolderPattern,
@@ -79,15 +82,54 @@ public partial class SettingsViewModel : ObservableObject
         finally { IsIndexing = false; }
     }
 
+    // ── Google auth ───────────────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task ConnectGoogleAsync()
+    {
+        IsConnectingGoogle = true;
+        try
+        {
+            await _googleAuth.GetCredentialAsync();
+            RefreshGoogleStatus();
+        }
+        catch (Exception ex)
+        {
+            GoogleAuthStatus = $"Connection failed: {ex.Message}";
+        }
+        finally { IsConnectingGoogle = false; }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectGoogleAsync()
+    {
+        await _googleAuth.RevokeAsync();
+        RefreshGoogleStatus();
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+
     [RelayCommand]
     private async Task SaveAsync()
     {
         IsSaving = true;
-        try
-        {
-            // In a real app, write to appsettings.json and notify services
-            await Task.Delay(200);
-        }
+        try { await Task.Delay(100); }
         finally { IsSaving = false; }
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────────
+
+    private void LoadFromConfig()
+    {
+        ZDriveRoot        = _config["ZDrive:RootPath"]          ?? @"Z:\";
+        ExcelPath         = _config["ZDrive:ExcelPath"]         ?? @"Z:\ClientDatabase.xlsx";
+        CaseFolderPattern = _config["ZDrive:CaseFolderPattern"] ?? CaseFolderPattern;
+        CaseFolderDepth   = int.TryParse(_config["ZDrive:CaseFolderDepth"], out var d) ? d : 1;
+    }
+
+    private void RefreshGoogleStatus()
+    {
+        IsGoogleAuthorized = _googleAuth.IsAuthorised;
+        GoogleAuthStatus   = IsGoogleAuthorized ? "Connected ✓" : "Not connected";
     }
 }

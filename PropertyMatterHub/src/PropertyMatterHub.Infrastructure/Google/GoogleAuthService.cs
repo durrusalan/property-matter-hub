@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace PropertyMatterHub.Infrastructure.Google;
 
-public class GoogleAuthService
+public class GoogleAuthService : IGoogleAuthService
 {
     public static readonly string[] Scopes =
     [

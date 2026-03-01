@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PropertyMatterHub.App.Services;
 using PropertyMatterHub.App.ViewModels;
+using PropertyMatterHub.App.Views;
 using PropertyMatterHub.Core.Interfaces;
 using PropertyMatterHub.Core.Services;
 using PropertyMatterHub.Infrastructure.Data;
@@ -33,8 +34,11 @@ public partial class App : Application
             })
             .ConfigureAppConfiguration(cfg =>
             {
+                var userCfgPath = FirstRunService.DefaultConfigPath();
                 cfg.SetBasePath(AppContext.BaseDirectory)
-                   .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                   .AddJsonFile("appsettings.json",           optional: true, reloadOnChange: true)
+                   .AddJsonFile(userCfgPath,                  optional: true, reloadOnChange: false)
+                   .AddEnvironmentVariables();
             })
             .ConfigureServices((ctx, services) =>
             {
@@ -56,6 +60,7 @@ public partial class App : Application
 
                 // Google auth + live adapters
                 services.AddSingleton<GoogleAuthService>();
+                services.AddSingleton<IGoogleAuthService>(sp => sp.GetRequiredService<GoogleAuthService>());
                 services.AddSingleton<IGmailRawClient, LiveGmailRawClient>();
                 services.AddSingleton<IGmailApiAdapter, LiveGmailApiAdapter>();
 
@@ -99,6 +104,11 @@ public partial class App : Application
                 services.AddSingleton<SearchViewModel>();
                 services.AddSingleton<MainViewModel>();
 
+                // First-run wizard
+                var userCfgPath = FirstRunService.DefaultConfigPath();
+                services.AddSingleton(new FirstRunService(userCfgPath));
+                services.AddTransient<FirstRunWindow>();
+
                 services.AddSingleton<MainWindow>();
             })
             .Build();
@@ -119,6 +129,15 @@ public partial class App : Application
 
         // Register WPF-UI accent colour resources (needed by Badge, ProgressRing, etc.)
         Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
+
+        // Show first-run wizard if this is the user's first launch.
+        var firstRunSvc = _host.Services.GetRequiredService<FirstRunService>();
+        if (firstRunSvc.IsFirstRun)
+        {
+            var wizard = _host.Services.GetRequiredService<FirstRunWindow>();
+            var accepted = wizard.ShowDialog();
+            // If the user closed the wizard without clicking "Get Started", still continue.
+        }
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();

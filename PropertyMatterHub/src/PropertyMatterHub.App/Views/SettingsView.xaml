@@ -75,9 +75,31 @@
 
       <ui:CardControl Header="Gmail + Calendar Authentication" Margin="0,0,0,10">
         <StackPanel>
-          <TextBlock Text="{Binding GoogleAuthStatus}" Margin="0,0,0,8"
-                     Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}" />
-          <ui:Button Content="Connect Google Account" Icon="{ui:SymbolIcon Symbol=Open24}" />
+          <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+            <ui:Badge Content="Connected" Appearance="Success" Margin="0,0,8,0"
+                      Visibility="{Binding IsGoogleAuthorized, Converter={StaticResource BoolToVisibility}}" />
+            <TextBlock Text="{Binding GoogleAuthStatus}"
+                       Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal">
+            <ui:Button Content="Connect Google Account" Icon="{ui:SymbolIcon Symbol=PlugConnected24}"
+                       Command="{Binding ConnectGoogleCommand}" Appearance="Secondary"
+                       Visibility="{Binding IsGoogleAuthorized, Converter={StaticResource InverseBoolToVisibility}}"
+                       Margin="0,0,8,0" />
+            <ui:Button Content="Disconnect" Icon="{ui:SymbolIcon Symbol=PlugDisconnected24}"
+                       Command="{Binding DisconnectGoogleCommand}" Appearance="Caution"
+                       Visibility="{Binding IsGoogleAuthorized, Converter={StaticResource BoolToVisibility}}"
+                       Margin="0,0,8,0" />
+            <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                             Visibility="{Binding IsConnectingGoogle, Converter={StaticResource BoolToVisibility}}" />
+          </StackPanel>
+
+          <TextBlock FontSize="11" Margin="0,10,0,0" TextWrapping="Wrap"
+                     Foreground="{ui:ThemeResource TextFillColorTertiaryBrush}">
+            Requires credentials.json at Z:\PropertyMatterHub\credentials.json (from Google Cloud Console).
+          </TextBlock>
         </StackPanel>
       </ui:CardControl>
 
