@@ -24,7 +24,7 @@
         <!-- Logo -->
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,20,16,24">
           <Border Width="36" Height="36" CornerRadius="10"
-                  Background="{ui:ThemeResource SystemAccentColorPrimaryBrush}">
+                  Background="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}">
             <ui:SymbolIcon Symbol="Briefcase24" Foreground="White" FontSize="18" />
           </Border>
           <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">

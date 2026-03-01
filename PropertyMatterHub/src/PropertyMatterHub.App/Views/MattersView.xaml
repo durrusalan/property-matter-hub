@@ -45,7 +45,7 @@
                         <Setter Property="Background" Value="{ui:ThemeResource ControlFillColorSecondaryBrush}" />
                       </Trigger>
                       <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="{ui:ThemeResource SystemAccentColorPrimaryBrush}" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                       </Trigger>
                     </ControlTemplate.Triggers>
                   </ControlTemplate>

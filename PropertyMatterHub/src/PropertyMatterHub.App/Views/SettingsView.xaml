@@ -46,6 +46,30 @@
         <TextBlock Text="{Binding PatternTestResult}" />
       </Border>
 
+      <!-- Z: Drive re-scan -->
+      <TextBlock Text="Z: Drive Indexing" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+
+      <ui:CardControl Header="Import clients &amp; matters from Z: drive folders" Margin="0,0,0,10">
+        <StackPanel>
+          <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,10"
+                     Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}">
+            Scans Z:\Clients and creates a Client + Matter for each matched folder.
+            Safe to run multiple times — existing records are never overwritten.
+          </TextBlock>
+          <StackPanel Orientation="Horizontal">
+            <ui:Button Content="Re-scan Z: Drive" Icon="{ui:SymbolIcon Symbol=FolderSync24}"
+                       Command="{Binding RescanZDriveCommand}" Margin="0,0,8,0" />
+            <ui:ProgressRing IsIndeterminate="True" Width="20" Height="20"
+                             Visibility="{Binding IsIndexing, Converter={StaticResource BoolToVisibility}}" />
+          </StackPanel>
+          <Border Padding="10,8" CornerRadius="6" Margin="0,10,0,0"
+                  Background="{ui:ThemeResource ControlFillColorDefaultBrush}"
+                  Visibility="{Binding IndexingResult, Converter={StaticResource StringToVisibility}}">
+            <TextBlock Text="{Binding IndexingResult}" TextWrapping="Wrap" FontSize="12" />
+          </Border>
+        </StackPanel>
+      </ui:CardControl>
+
       <!-- Google section -->
       <TextBlock Text="Google Workspace" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
 

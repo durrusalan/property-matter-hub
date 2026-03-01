@@ -12,6 +12,7 @@ using PropertyMatterHub.Infrastructure.Excel;
 using PropertyMatterHub.Infrastructure.FileSystem;
 using System.IO;
 using System.Windows;
+using Microsoft.Extensions.Logging;
 
 namespace PropertyMatterHub.App;
 
@@ -68,6 +69,7 @@ public partial class App : Application
                     };
                 });
                 services.AddSingleton<ZDriveScanner>();
+                services.AddSingleton<ZDriveIndexingService>();
 
                 // ViewModels (singleton so they keep state while navigating)
                 services.AddSingleton<DashboardViewModel>();
@@ -86,12 +88,29 @@ public partial class App : Application
 
         await _host.StartAsync();
 
-        // Initialise the database
+        // Initialise the database schema
         var db = _host.Services.GetRequiredService<AppDbContext>();
         await db.Database.EnsureCreatedAsync();
 
+        // Seed from Z: drive — idempotent, only creates what's missing
+        var indexer = _host.Services.GetRequiredService<ZDriveIndexingService>();
+        var summary = await indexer.RunAsync();
+        var logger  = _host.Services.GetRequiredService<ILogger<App>>();
+        logger.LogInformation(
+            "Z: drive index: {Matched}/{Total} folders matched, {C} clients + {M} matters added.",
+            summary.FoldersMatched, summary.FoldersFound, summary.ClientsCreated, summary.MattersCreated);
+
+        // Register WPF-UI accent colour resources (needed by Badge, ProgressRing, etc.)
+        Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        // Trigger initial data load for visible ViewModels
+        var mainVm = _host.Services.GetRequiredService<MainViewModel>();
+        _ = mainVm.Dashboard.LoadCommand.ExecuteAsync(null);
+        _ = mainVm.MatterList.LoadCommand.ExecuteAsync(null);
+        _ = mainVm.ClientList.LoadCommand.ExecuteAsync(null);
     }
 
     protected override async void OnExit(ExitEventArgs e)
