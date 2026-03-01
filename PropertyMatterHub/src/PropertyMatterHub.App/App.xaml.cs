@@ -24,6 +24,11 @@ public partial class App : Application
         base.OnStartup(e);
 
         _host = Host.CreateDefaultBuilder()
+            .UseDefaultServiceProvider(opt =>
+            {
+                // In debug let DI warn; in release validate on build only
+                opt.ValidateScopes = false;
+            })
             .ConfigureAppConfiguration(cfg =>
             {
                 cfg.SetBasePath(AppContext.BaseDirectory)
@@ -31,27 +36,25 @@ public partial class App : Application
             })
             .ConfigureServices((ctx, services) =>
             {
-                var zDrivePath = ctx.Configuration["ZDrive:DatabasePath"]
-                                 ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                                 "PropertyMatterHub", "hub.db");
-
-                Directory.CreateDirectory(Path.GetDirectoryName(zDrivePath)!);
+                var dbPath = ResolveDatabasePath(ctx.Configuration);
+                Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 
                 services.AddDbContext<AppDbContext>(opt =>
-                    opt.UseSqlite($"Data Source={zDrivePath};Mode=ReadWriteCreate;Cache=Shared"));
+                    opt.UseSqlite($"Data Source={dbPath};Mode=ReadWriteCreate;Cache=Shared"),
+                    ServiceLifetime.Singleton);   // Singleton so the same connection is shared app-wide
 
                 // Repositories & Core services
-                services.AddScoped<IMatterRepository, MatterRepository>();
-                services.AddScoped<IClientRepository, ClientRepository>();
-                services.AddScoped<IExcelSyncService, ExcelSyncService>();
-                services.AddScoped<MatterService>();
-                services.AddScoped<ClientService>();
-                services.AddScoped<SearchService>();
-                services.AddScoped<EmailClassificationService>();
+                services.AddSingleton<IMatterRepository, MatterRepository>();
+                services.AddSingleton<IClientRepository, ClientRepository>();
+                services.AddSingleton<IExcelSyncService, ExcelSyncService>();
+                services.AddSingleton<MatterService>();
+                services.AddSingleton<ClientService>();
+                services.AddSingleton<SearchService>();
+                services.AddSingleton<EmailClassificationService>();
 
                 // Stub Google services (replaced when Google auth is configured)
-                services.AddScoped<IEmailService, NullEmailService>();
-                services.AddScoped<ICalendarService, NullCalendarService>();
+                services.AddSingleton<IEmailService, NullEmailService>();
+                services.AddSingleton<ICalendarService, NullCalendarService>();
 
                 // Infrastructure
                 services.AddSingleton(sp =>
@@ -66,26 +69,25 @@ public partial class App : Application
                 });
                 services.AddSingleton<ZDriveScanner>();
 
-                // ViewModels
-                services.AddTransient<DashboardViewModel>();
-                services.AddTransient<MatterListViewModel>();
-                services.AddTransient<MatterDetailViewModel>();
-                services.AddTransient<ClientListViewModel>();
-                services.AddTransient<EmailViewModel>();
-                services.AddTransient<CalendarViewModel>();
-                services.AddTransient<SettingsViewModel>();
-                services.AddTransient<SearchViewModel>();
-                services.AddTransient<MainViewModel>();
+                // ViewModels (singleton so they keep state while navigating)
+                services.AddSingleton<DashboardViewModel>();
+                services.AddSingleton<MatterListViewModel>();
+                services.AddSingleton<MatterDetailViewModel>();
+                services.AddSingleton<ClientListViewModel>();
+                services.AddSingleton<EmailViewModel>();
+                services.AddSingleton<CalendarViewModel>();
+                services.AddSingleton<SettingsViewModel>();
+                services.AddSingleton<SearchViewModel>();
+                services.AddSingleton<MainViewModel>();
 
-                services.AddTransient<MainWindow>();
+                services.AddSingleton<MainWindow>();
             })
             .Build();
 
         await _host.StartAsync();
 
-        // Run EF Core migrations on startup
-        using var scope = _host.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        // Initialise the database
+        var db = _host.Services.GetRequiredService<AppDbContext>();
         await db.Database.EnsureCreatedAsync();
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
@@ -100,5 +102,26 @@ public partial class App : Application
             _host.Dispose();
         }
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// Returns the SQLite database path. If Z: drive exists, uses it.
+    /// Falls back to %LocalAppData%\PropertyMatterHub\hub.db so the app
+    /// still works on machines without a Z: drive mapped.
+    /// </summary>
+    private static string ResolveDatabasePath(IConfiguration config)
+    {
+        var configured = config["ZDrive:DatabasePath"];
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            var root = Path.GetPathRoot(configured);
+            if (!string.IsNullOrEmpty(root) && Directory.Exists(root))
+                return configured;
+        }
+
+        // Z: drive not available → local fallback
+        return Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "PropertyMatterHub", "hub.db");
     }
 }
