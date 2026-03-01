@@ -24,4 +24,7 @@ public class NullEmailService : IEmailService
 
     public Task<string?> GetFullBodyAsync(string gmailMessageId, CancellationToken ct = default)
         => Task.FromResult<string?>(null);
+
+    public Task<IReadOnlyList<EmailRecord>> GetNeedsReviewEmailsAsync(CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<EmailRecord>>([]);
 }

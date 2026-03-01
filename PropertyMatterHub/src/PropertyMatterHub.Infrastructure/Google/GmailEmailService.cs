@@ -72,6 +72,12 @@ public class GmailEmailService : IEmailService
         await _db.SaveChangesAsync(ct);
     }
 
+    public async Task<IReadOnlyList<EmailRecord>> GetNeedsReviewEmailsAsync(CancellationToken ct = default) =>
+        await _db.EmailRecords
+            .Where(e => e.ClassificationStatus == EmailClassificationStatus.NeedsReview)
+            .OrderByDescending(e => e.FetchedAt)
+            .ToListAsync(ct);
+
     public async Task<string?> GetFullBodyAsync(string gmailMessageId, CancellationToken ct = default)
     {
         var record = await _db.EmailRecords

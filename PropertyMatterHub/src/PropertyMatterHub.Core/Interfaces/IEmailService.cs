@@ -11,4 +11,5 @@ public interface IEmailService
         IEnumerable<string>? attachmentPaths = null, CancellationToken ct = default);
     Task ClassifyEmailAsync(int emailRecordId, int matterId, CancellationToken ct = default);
     Task<string?> GetFullBodyAsync(string gmailMessageId, CancellationToken ct = default);
+    Task<IReadOnlyList<EmailRecord>> GetNeedsReviewEmailsAsync(CancellationToken ct = default);
 }
