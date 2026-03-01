@@ -13,6 +13,7 @@
       <conv:BoolToVisibilityConverter        x:Key="BoolToVisibility"        xmlns:conv="clr-namespace:PropertyMatterHub.App.Converters" />
       <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" xmlns:conv="clr-namespace:PropertyMatterHub.App.Converters" />
       <conv:StringToVisibilityConverter      x:Key="StringToVisibility"      xmlns:conv="clr-namespace:PropertyMatterHub.App.Converters" />
+      <conv:CountToVisibilityConverter       x:Key="CountToVisibility"       xmlns:conv="clr-namespace:PropertyMatterHub.App.Converters" />
     </ResourceDictionary>
   </Application.Resources>
 

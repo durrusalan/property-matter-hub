@@ -22,6 +22,7 @@ public partial class EmailViewModel : ObservableObject
 
     [ObservableProperty] private IReadOnlyList<EmailRecord> _unclassifiedEmails = [];
     [ObservableProperty] private IReadOnlyList<EmailRecord> _needsReviewEmails  = [];
+    [ObservableProperty] private IReadOnlyList<Matter>      _availableMatters   = [];
     [ObservableProperty] private EmailRecord? _selectedEmail;
     [ObservableProperty] private bool _isLoading;
     [ObservableProperty] private bool _isComposing;
@@ -117,8 +118,9 @@ public partial class EmailViewModel : ObservableObject
 
     private async Task RefreshContextCacheAsync()
     {
-        _cachedMatters = await _matters.GetActiveAsync();
-        _cachedClients = await _clients.GetAllAsync();
+        _cachedMatters   = await _matters.GetActiveAsync();
+        _cachedClients   = await _clients.GetAllAsync();
+        AvailableMatters = _cachedMatters;
     }
 
     private async Task AutoClassifyNewEmailsAsync()

@@ -10,6 +10,7 @@ using PropertyMatterHub.Infrastructure.Data;
 using PropertyMatterHub.Infrastructure.Data.Repositories;
 using PropertyMatterHub.Infrastructure.Excel;
 using PropertyMatterHub.Infrastructure.FileSystem;
+using PropertyMatterHub.Infrastructure.Google;
 using System.IO;
 using System.Windows;
 using Microsoft.Extensions.Logging;
@@ -53,8 +54,23 @@ public partial class App : Application
                 services.AddSingleton<SearchService>();
                 services.AddSingleton<EmailClassificationService>();
 
-                // Stub Google services (replaced when Google auth is configured)
-                services.AddSingleton<IEmailService, NullEmailService>();
+                // Google auth + live adapters
+                services.AddSingleton<GoogleAuthService>();
+                services.AddSingleton<IGmailRawClient, LiveGmailRawClient>();
+                services.AddSingleton<IGmailApiAdapter, LiveGmailApiAdapter>();
+
+                // Use live Gmail when credentials.json exists on Z:; otherwise stub.
+                var credPath = ctx.Configuration["Google:CredentialsPath"]
+                    ?? @"Z:\PropertyMatterHub\credentials.json";
+                if (File.Exists(credPath))
+                {
+                    services.AddSingleton<IEmailService, GmailEmailService>();
+                }
+                else
+                {
+                    services.AddSingleton<IEmailService, NullEmailService>();
+                }
+
                 services.AddSingleton<ICalendarService, NullCalendarService>();
 
                 // Infrastructure

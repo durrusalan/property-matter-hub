@@ -1,5 +1,4 @@
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Util;
 using Google.Apis.Util.Store;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -73,5 +72,5 @@ public class GoogleAuthService
     }
 
     private static bool IsTokenValid(UserCredential credential) =>
-        !credential.Token.IsExpired(SystemClock.Default);
+        !credential.Token.IsStale;
 }
