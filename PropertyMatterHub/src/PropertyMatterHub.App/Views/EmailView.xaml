@@ -1,0 +1,72 @@
+<UserControl x:Class="PropertyMatterHub.App.Views.EmailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <!-- Toolbar -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="16,16,16,8">
+      <TextBlock Text="Emails" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center" />
+      <ui:Button Content="Fetch" Icon="{ui:SymbolIcon Symbol=ArrowDownload24}"
+                 Command="{Binding FetchEmailsCommand}" Margin="0,0,8,0" />
+      <ui:Button Content="Compose" Icon="{ui:SymbolIcon Symbol=Mail24}"
+                 Command="{Binding ComposeCommand}" Appearance="Secondary" />
+    </StackPanel>
+
+    <!-- Email list / Compose pane -->
+    <Grid Grid.Row="1">
+      <!-- Email list (shown when not composing) -->
+      <ScrollViewer Visibility="{Binding IsComposing, Converter={StaticResource InverseBoolToVisibility}}">
+        <StackPanel Margin="16,0,16,16">
+          <TextBlock Text="Unclassified Emails" FontWeight="SemiBold" Margin="0,0,0,8" />
+          <ItemsControl ItemsSource="{Binding UnclassifiedEmails}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Margin="0,4" Padding="12,10" CornerRadius="8"
+                        Background="{ui:ThemeResource ControlFillColorDefaultBrush}">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Subject}" FontWeight="SemiBold" />
+                    <TextBlock FontSize="12" Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}">
+                      <Run Text="{Binding From}" /><Run Text=" · " />
+                      <Run Text="{Binding SentAt, StringFormat='dd/MM/yyyy HH:mm'}" />
+                    </TextBlock>
+                    <TextBlock Text="{Binding Snippet}" FontSize="12" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{ui:ThemeResource TextFillColorSecondaryBrush}" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Compose pane -->
+      <ScrollViewer Visibility="{Binding IsComposing, Converter={StaticResource BoolToVisibility}}">
+        <StackPanel Margin="28,16,28,28">
+          <TextBlock Text="New Email" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,16" />
+
+          <TextBlock Text="To" FontSize="13" Margin="0,0,0,4" />
+          <ui:TextBox Text="{Binding ComposeTo, UpdateSourceTrigger=PropertyChanged}"
+                      PlaceholderText="recipient@email.ie" Margin="0,0,0,12" />
+
+          <TextBlock Text="Subject" FontSize="13" Margin="0,0,0,4" />
+          <ui:TextBox Text="{Binding ComposeSubject, UpdateSourceTrigger=PropertyChanged}"
+                      PlaceholderText="Subject" Margin="0,0,0,12" />
+
+          <TextBlock Text="Body" FontSize="13" Margin="0,0,0,4" />
+          <ui:TextBox Text="{Binding ComposeBody, UpdateSourceTrigger=PropertyChanged}"
+                      PlaceholderText="Write your email…" AcceptsReturn="True" Height="200" Margin="0,0,0,20" />
+
+          <StackPanel Orientation="Horizontal">
+            <ui:Button Content="Send" Icon="{ui:SymbolIcon Symbol=Send24}" Command="{Binding SendCommand}" Margin="0,0,8,0" />
+            <ui:Button Content="Cancel" Command="{Binding CancelComposeCommand}" Appearance="Secondary" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+  </Grid>
+</UserControl>
