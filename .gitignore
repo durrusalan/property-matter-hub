@@ -43,3 +43,5 @@ TestResults/
 coverage/
 *.coverage
 *.coveragexml
+MatterHubDemo.tsx
+PropertyMatterHub-standalone.html
